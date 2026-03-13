@@ -1,67 +1,50 @@
 /*============================================================
-  SQL database in Fabric – SQL Con ATL Demo
+  SQL database in Fabric — FabCon Demo
   Cleanup / Reset Script
   
-  Run this to tear down all demo artifacts so you can
-  re-run the demo from scratch.
+  Database: LoanApplicationApp
+  
+  This demo is read-only against the existing dbo tables.
+  The only thing to reset is the vCore cap in the portal
+  (if you didn't already reset it during the demo).
+  
+  Does NOT touch: borrowers, loan_applications, credit_scores,
+  income_verifications, collaterals — those belong to the 
+  shared demo and are used by demoer #3.
 ============================================================*/
 
 -- ────────────────────────────────────────────────
--- 1. Drop security policy (must go before function)
+-- 1. Portal: Reset vCore cap
 -- ────────────────────────────────────────────────
-IF EXISTS (SELECT 1 FROM sys.security_policies WHERE name = 'RegionSecurityPolicy')
-    DROP SECURITY POLICY retail.RegionSecurityPolicy;
-GO
+/*
+  → Open database Settings → Compute (preview)
+  → Set "Max vCore limit" back to "32 vCores (default)"
+  → Click Save
+  
+  (If you already reset this at the end of Pillar 3, skip.)
+*/
 
 -- ────────────────────────────────────────────────
--- 2. Drop security predicate function
+-- 2. Portal: Auditing (optional)
 -- ────────────────────────────────────────────────
-DROP FUNCTION IF EXISTS retail.fn_RegionFilter;
-GO
+/*
+  Auditing can be left enabled — it doesn't affect demoer #3.
+  If you want to disable it:
+  → Security tab → Manage SQL Auditing → toggle off → Save
+*/
 
 -- ────────────────────────────────────────────────
--- 3. Drop demo users
+-- 3. Verify existing tables are intact
 -- ────────────────────────────────────────────────
-IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'SalesAppUser')
-    DROP USER SalesAppUser;
-IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'NortheastRep')
-    DROP USER NortheastRep;
-IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'SoutheastRep')
-    DROP USER SoutheastRep;
+SELECT 
+    t.name           AS [table_name],
+    p.rows           AS [row_count]
+FROM sys.tables t
+JOIN sys.partitions p ON t.object_id = p.object_id AND p.index_id IN (0,1)
+WHERE t.name IN ('borrowers','loan_applications','credit_scores',
+                  'income_verifications','collaterals')
+ORDER BY t.name;
 GO
 
--- ────────────────────────────────────────────────
--- 4. Drop view & stored procedure (Segment 2)
--- ────────────────────────────────────────────────
-DROP VIEW IF EXISTS retail.vw_OrderSummary;
-DROP PROCEDURE IF EXISTS retail.usp_UpdateOrderStatus;
-GO
-
--- ────────────────────────────────────────────────
--- 5. Drop tables (in dependency order)
--- ────────────────────────────────────────────────
-DROP TABLE IF EXISTS retail.UserRegionMapping;
-DROP TABLE IF EXISTS retail.OrderItems;
-DROP TABLE IF EXISTS retail.Orders;
-DROP TABLE IF EXISTS retail.Products;
-DROP TABLE IF EXISTS retail.Categories;
-DROP TABLE IF EXISTS retail.Customers;
-DROP TABLE IF EXISTS retail.Regions;
-GO
-
--- ────────────────────────────────────────────────
--- 6. Drop schema
--- ────────────────────────────────────────────────
-IF SCHEMA_ID('retail') IS NOT NULL
-    DROP SCHEMA retail;
-GO
-
--- ────────────────────────────────────────────────
--- 7. Reset any changed database-scoped configs
--- ────────────────────────────────────────────────
-ALTER DATABASE SCOPED CONFIGURATION SET MAXDOP = 0;
-GO
-
-PRINT '✅ Demo environment fully reset.';
-PRINT '   Re-run setup/01-create-schema.sql and setup/02-seed-data.sql to rebuild.';
+PRINT '✓ Cleanup complete. Existing tables verified intact.';
 GO

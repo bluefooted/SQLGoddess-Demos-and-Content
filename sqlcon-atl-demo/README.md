@@ -1,118 +1,122 @@
-# SQL database in Fabric — SQL Con ATL Demo
+# SQL database in Fabric — FabCon Demo
 
-## 🎯 Demo Story
+## Demo Story
 
 **You are Presenter #2 of 3.** The previous presenter has already:
-- Created the SQL database in Fabric
-- Shown VS Code integration & source control
-- Demonstrated the getting-started experience
+- Created the SQL database (`LoanApplicationApp`)
+- Shown GitHub integration & developer features
+- Populated the 5 core tables (borrowers, loan_applications, credit_scores, income_verifications, collaterals)
 
-**Your angle:** Show the audience that SQL database in Fabric is **autonomous, enterprise-ready, SaaS by default, and PaaS configurable.**
+**Your angle:** SQL database in Fabric is **autonomous, enterprise-ready, and SaaS by default with PaaS control.**
 
----
+**After you:** Presenter #3 will shortcut the existing dbo tables into a Lakehouse, show pipelines, and data agents.
 
-## ⏱️ Revised 7-Minute Run Sheet
-
-| Time | Segment | Script | Theme | Key Moment |
-|------|---------|--------|-------|------------|
-| 0:00–1:30 | **1. Performance Observability** | `segment-1-auto-performance.sql` | Autonomous | Performance Dashboard, DMVs, Query Store, wait stats — all built in |
-| 1:30–3:00 | **2. Autonomous Tuning** | `segment-3-autonomous-tuning.sql` | Autonomous | Workload patterns → auto index recs, IQP, auto-tuning ON |
-| 3:00–4:30 | **3. GraphQL API Endpoint** | `segment-2-graphql-api.sql` | SaaS by default | Generate API in portal, run GraphQL query live |
-| 4:30–6:00 | **4. Enterprise Security** | `segment-4-enterprise-security.sql` | Enterprise-ready | DDM, RLS, auditing — all in 90 seconds |
-| 6:00–7:00 | **5. PaaS Config, Copilot & Fabric Integration** | `segment-5-paas-copilot.sql` | PaaS configurable | Copilot NL→SQL, OneLake auto-mirroring |
+**Critical constraint:** Do NOT modify or drop the 5 existing dbo tables. Your demo is read-only + portal GUI.
 
 ---
 
-## 📁 Project Structure
+## 7-Minute Run Sheet
+
+| Time | Pillar | Script / Action | Key Moment |
+|------|--------|-----------------|------------|
+| 0:00–0:30 | **1. Autonomous** | [Portal] Performance Dashboard | "Always on — zero configuration" |
+| 0:30–1:15 | | `pillar-1-autonomous.sql` — DMVs, Query Store | "Query Store is always on, always capturing" |
+| 1:15–2:30 | | `pillar-1-autonomous.sql` — Workload + auto-tuning | Run 4 query patterns → show index recs, auto-tuning |
+| 2:30–3:30 | **2. Enterprise Ready** | [Portal] Security → Manage SQL Auditing | **NEW**: Enable auditing, show scenarios, retention |
+| 3:30–3:50 | | `pillar-2-enterprise-security.sql` — Generate activity | Run sample queries to create audit events |
+| 3:50–4:45 | | `pillar-2-enterprise-security.sql` — Query audit logs | `fn_get_audit_file_v2` — all events + time-range |
+| 4:45–5:00 | | Talk track | Compliance story (HIPAA, SOX, regulated industries) |
+| 5:00–5:20 | **3. SaaS/PaaS** | `pillar-3-saas-paas.sql` — CPU query at 32 vCores | Baseline execution time |
+| 5:20–5:50 | | [Portal] Settings → Compute → Cap to 4 vCores | **NEW**: Max vCore limit dropdown |
+| 5:50–6:10 | | `pillar-3-saas-paas.sql` — CPU query at 4 vCores | Show slower execution, reset to 32 |
+| 6:15–6:40 | | [Portal] Copilot | Natural language → SQL on loan data |
+| 6:40–7:00 | | Wrap-up & handoff | → Presenter #3 |
+
+---
+
+## Project Structure
 
 ```
 sqlcon-atl-demo/
-├── README.md                              ← You are here
+├── README.md                                ← You are here
 ├── setup/
-│   ├── 01-create-schema.sql               ← Run BEFORE demo (creates tables)
-│   └── 02-seed-data.sql                   ← Run BEFORE demo (10K orders)
+│   └── 01-create-schema.sql                 ← Pre-flight validation (no objects created)
 ├── demo/
-│   ├── segment-1-auto-performance.sql     ← Segment 1: Observability
-│   ├── segment-2-graphql-api.sql          ← Segment 3: GraphQL API
-│   ├── segment-3-autonomous-tuning.sql    ← Segment 2: Autonomous Tuning
-│   ├── segment-4-enterprise-security.sql  ← Segment 4
-│   └── segment-5-paas-copilot.sql         ← Segment 5
+│   ├── pillar-1-autonomous.sql              ← Pillar 1: Performance + Auto-Tuning
+│   ├── pillar-2-enterprise-security.sql     ← Pillar 2: Auditing (NEW)
+│   └── pillar-3-saas-paas.sql              ← Pillar 3: vCore Capping (NEW) + Copilot
 └── cleanup/
-    └── reset-demo.sql                     ← Tear down & reset for re-run
+    └── reset-demo.sql                       ← Reset vCore cap + verify tables intact
 ```
 
 ---
 
-## 🔧 Pre-Demo Setup (Day Before)
+## Pre-Demo Setup
 
-1. **Confirm the database exists** — the prior presenter will have created it
-2. **Run setup scripts in order:**
+1. **Confirm the database exists** — Presenter #1 will have created `LoanApplicationApp`
+2. **Run the validation script:**
    ```
    setup/01-create-schema.sql
-   setup/02-seed-data.sql
    ```
-3. **Verify data loaded:**
-   ```sql
-   SELECT COUNT(*) FROM retail.Orders;        -- expect ~10,000
-   SELECT COUNT(*) FROM retail.OrderItems;     -- expect ~25,000
-   SELECT COUNT(*) FROM retail.Customers;      -- expect 500
-   SELECT COUNT(*) FROM retail.Products;       -- expect 80
-   ```
-4. **Pre-create the GraphQL API** in the Fabric portal (Segment 3):
-   - Run the view/proc creation from `segment-2-graphql-api.sql`
-   - Go to the portal → New → GraphQL API → select tables + view + stored proc
-   - Verify it works with the test queries in the script
-   - *You'll walk through this live but having it pre-created avoids portal latency*
-5. **Open all 5 demo scripts** in VS Code tabs, in order
-6. **Open the Fabric portal** in a browser tab, logged in
-7. **Open a second browser tab** to the GraphQL API explorer
+   Verify all 5 tables present with expected row counts.
+
+3. **Enable Auditing ahead of time** (recommended):
+   - Security tab → Manage SQL Auditing → Enable → Audit everything → Save
+   - This ensures audit logs are flowing before you go on stage
+   - On stage, you'll show the GUI configuration and query logs that captured Pillar 1 activity
+
+4. **Verify vCore cap is at default:**
+   - Settings → Compute (preview) → should show "32 vCores (default)"
+
+5. **Pre-open tabs in order:**
+
+   | Tab # | What | Where |
+   |-------|------|-------|
+   | 1 | Performance Dashboard | Fabric Portal |
+   | 2 | `pillar-1-autonomous.sql` | VS Code / SQL Editor |
+   | 3 | Security → Auditing | Fabric Portal |
+   | 4 | `pillar-2-enterprise-security.sql` | VS Code / SQL Editor |
+   | 5 | `pillar-3-saas-paas.sql` | VS Code / SQL Editor |
+   | 6 | Copilot | Fabric Portal |
 
 ---
 
-## 🎤 Presenter Script & Transitions
+## Presenter Script & Transitions
 
-### Opening (at 0:00)
-> *"Thanks [Presenter 1]! You just saw how easy it is to get started. Now let me show you what happens when you actually PUT this database to work — observability, autonomous tuning, instant APIs, security, and intelligence, all built in."*
+### Opening (0:00)
+> *"Thanks [Presenter 1]! You just saw how easy it is to get started with SQL database in Fabric. Now let me show you what happens when you put this database to work in production — autonomous performance, enterprise-grade compliance, and control when you need it."*
 
-### Segment 1 → 2 Transition (at ~1:30)
-> *"Full observability — Performance Dashboard, DMVs, Query Store, wait stats — all built in, always on. But does it just monitor, or does it actually ACT on what it sees? Let me show you..."*
+### Pillar 1 → 2 Transition (~2:30)
+> *"Performance takes care of itself. Now let's talk about what enterprises need most — compliance and security."*
 
-### Segment 2 → 3 Transition (at ~3:00)
-> *"The database monitors itself AND tunes itself. Now let me show you something that gets a lot of applause — an instant API on your data."*
+### Pillar 2 → 3 Transition (~5:00)
+> *"Autonomous performance, a full enterprise audit trail — and it's all SaaS. But what if you need control?"*
 
-### Segment 3 → 4 Transition (at ~4:30)
-> *"An instant GraphQL API — no Express, no Django, no deployment pipeline. That's SaaS by default. Now let me show you enterprise-grade security in under 90 seconds."*
-
-### Segment 4 → 5 Transition (at ~6:00)
-> *"Dynamic Data Masking, Row-Level Security, and auditing — all in under 90 seconds. For our finale, let me show you the PaaS flexibility and Copilot."*
-
-### Closing (at ~6:50)
-> *"SQL database in Fabric — full observability, autonomous tuning, instant APIs, enterprise security, PaaS control when you need it, Copilot built in, and automatic OneLake integration. SaaS by default. PaaS when you want it. Thank you!"*
+### Closing (~6:40)
+> *"SQL database in Fabric: autonomous performance, enterprise security, SaaS simplicity with PaaS control when you need it."*
 
 ---
 
-## ⚠️ Backup Plans
+## Backup Plans
 
 | Risk | Mitigation |
 |------|-----------|
-| GraphQL API takes too long to create | Pre-create it; just show & query it |
-| Copilot doesn't generate a query | Backup queries are in `segment-5-paas-copilot.sql` |
-| Automatic index recs don't appear | Run the workload queries 10x instead of 5x in segment 2; or mention "in production workloads these appear within minutes" |
-| Audit log query fails | Skip it — just mention "auditing is on by default" and move on |
-| Portal is slow | Stay in VS Code / SQL editor for all possible segments |
+| Audit logs not yet available | Mention "there can be a short lag" — this is why we pre-enable auditing. Logs from Pillar 1 workload queries should be there by the time you reach Pillar 2. |
+| Audit `fn_get_audit_file_v2` fails | Show the audit config GUI only and say "logs are queryable via T-SQL and directly in OneLake" |
+| vCore cap change takes time to apply | Pre-set to 4 vCores before demo, run query, then set to 32 and re-run (reverse the order) |
+| Copilot doesn't generate a query | Backup query is in `pillar-3-saas-paas.sql` |
+| Auto index recs don't appear | Run workload 10x instead of 5x; or say "in production workloads these appear within minutes" |
+| Portal is slow | Stay in T-SQL editor for all possible steps |
 
 ---
 
-## 🧹 Reset for Re-Run
+## Reset for Re-Run
 
-If you need to reset the demo to run it again:
 ```
 cleanup/reset-demo.sql
-setup/01-create-schema.sql
-setup/02-seed-data.sql
 ```
 
----
+This verifies the 5 existing tables are intact and reminds you to reset the vCore cap to 32 in the portal. No database objects to drop — the demo is entirely read-only.
 
 ## 📋 Tab Order for Demo Day
 
