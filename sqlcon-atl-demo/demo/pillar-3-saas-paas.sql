@@ -9,16 +9,16 @@
 ---------------------------------------------------------------
 -- PART A: vCore Capping — NEW FEATURE (5:00–6:15)
 -- Compute (preview) in Fabric portal Settings
--- Default: 32 vCores   →   Cap to: 4 vCores
+-- Default: 16 vCores   →   Cap to: 4 vCores
 ---------------------------------------------------------------
 
--- STEP 1: Run CPU-heavy query at default 32 vCores
+-- STEP 1: Run CPU-heavy query at default 16 vCores
 --         Note the execution time
 
 /*
-  TALK TRACK: "Let me run a heavy analytical workload — this 
-  cross-joins our tables into 18 million row combinations with 
-  cryptographic hashing on every row."
+  TALK TRACK: "Let me run a heavy analytical workload — a 
+  risk analysis that cross-joins borrowers and loan applications 
+  against vehicle collateral records."
 */
 
 DECLARE @start DATETIME2 = SYSDATETIME();
@@ -26,37 +26,36 @@ DECLARE @start DATETIME2 = SYSDATETIME();
 SELECT 
     b.risk_tier,
     la.decision_status,
-    COUNT(*)                            AS combination_count,
-    COUNT(DISTINCT hash_val)            AS distinct_hashes,
-    SUM(la.requested_amount)            AS total_requested
+    COUNT(*)                                               AS combination_count,
+    SUM(la.requested_amount)                               AS total_requested,
+    SUM(CAST(CHECKSUM(
+        CHECKSUM(b.name, b.email, b.borrower_id),
+        CHECKSUM(la.app_id, la.lender_id, la.purpose_code),
+        CHECKSUM(b.phone, b.risk_tier, la.requested_amount),
+        CHECKSUM(c.collateral_type, c.city, c.postal_code)
+    ) AS BIGINT))                                          AS hash_checksum
 FROM dbo.borrowers b
 CROSS JOIN dbo.loan_applications la
-CROSS JOIN dbo.credit_scores cs
-CROSS APPLY (
-    SELECT HASHBYTES('SHA2_256', 
-        CONCAT(b.name, '|', b.email, '|', la.app_id, '|', 
-               cs.bureau_name, '|', cs.score_model, '|',
-               NEWID())
-    ) AS hash_val
-) h
+CROSS JOIN dbo.collaterals c
+WHERE c.collateral_type = 'Vehicle'
 GROUP BY b.risk_tier, la.decision_status
 ORDER BY total_requested DESC;
 
-SELECT DATEDIFF(MILLISECOND, @start, SYSDATETIME()) AS elapsed_ms_at_32_vcores;
+SELECT DATEDIFF(MILLISECOND, @start, SYSDATETIME()) AS elapsed_ms_at_16_vcores;
 GO
 
 /*
-  TALK TRACK: "At 32 vCores, that took [X] seconds."
+  TALK TRACK: "At 16 vCores, that took [X] seconds."
 
   → [Portal] STEP 2: Open database Settings → Compute (preview)
-     - Show "Max vCore limit" dropdown: "32 vCores (default) (current)"
+     - Show "Max vCore limit" dropdown: "16 vCores (current)"
      - Change to "4 vCores" → click Save
      
   TALK TRACK: "This is a new capability — Compute settings. By 
-  default, SQL database in Fabric autoscales up to 32 vCores. 
-  But if you want to control costs — maybe this is a dev/test 
-  database, or you have a predictable workload — you can cap it. 
-  Let me set this to 4 vCores."
+  default, SQL database in Fabric autoscales up to 32 vCores — 
+  my capacity tops out at 16. But if you want to control costs 
+  — maybe this is a dev/test database, or you have a predictable 
+  workload — you can cap it. Let me set this to 4 vCores."
 */
 
 -- STEP 3: Re-run the SAME query at 4 vCores
@@ -67,19 +66,18 @@ DECLARE @start DATETIME2 = SYSDATETIME();
 SELECT 
     b.risk_tier,
     la.decision_status,
-    COUNT(*)                            AS combination_count,
-    COUNT(DISTINCT hash_val)            AS distinct_hashes,
-    SUM(la.requested_amount)            AS total_requested
+    COUNT(*)                                               AS combination_count,
+    SUM(la.requested_amount)                               AS total_requested,
+    SUM(CAST(CHECKSUM(
+        CHECKSUM(b.name, b.email, b.borrower_id),
+        CHECKSUM(la.app_id, la.lender_id, la.purpose_code),
+        CHECKSUM(b.phone, b.risk_tier, la.requested_amount),
+        CHECKSUM(c.collateral_type, c.city, c.postal_code)
+    ) AS BIGINT))                                          AS hash_checksum
 FROM dbo.borrowers b
 CROSS JOIN dbo.loan_applications la
-CROSS JOIN dbo.credit_scores cs
-CROSS APPLY (
-    SELECT HASHBYTES('SHA2_256', 
-        CONCAT(b.name, '|', b.email, '|', la.app_id, '|', 
-               cs.bureau_name, '|', cs.score_model, '|',
-               NEWID())
-    ) AS hash_val
-) h
+CROSS JOIN dbo.collaterals c
+WHERE c.collateral_type = 'Vehicle'
 GROUP BY b.risk_tier, la.decision_status
 ORDER BY total_requested DESC;
 
@@ -92,7 +90,7 @@ GO
   balance cost and performance."
 
   → [Portal] STEP 4: Reset Max vCore limit back to 
-     "32 vCores (default)" → Save
+     "16 vCores" → Save
      
   TALK TRACK: "And just as easily, scale it back up. This is 
   what we mean by SaaS by default, PaaS configurable."
