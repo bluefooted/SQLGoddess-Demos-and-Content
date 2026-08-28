@@ -1,0 +1,8 @@
+.git*
+.vscode
+local.settings.json
+src
+test
+tsconfig.json
+vitest.config.ts
+node_modules/.cache

@@ -1,0 +1,13 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "AZURE_OPENAI_ENDPOINT": "https://ai-pamdemoaihub880628764654.openai.azure.com/",
+    "AZURE_OPENAI_EMBEDDING_DEPLOYMENT": "text-embedding-3-small",
+    "AZURE_OPENAI_CHAT_DEPLOYMENT": "gpt-4o",
+    "FABRIC_SQL_SERVER": "x6eps4xrq2xudenlfv6naeo3i4-dxfehldjjahutc3x3yd4rhloy4.msit-database.fabric.microsoft.com",
+    "FABRIC_SQL_DATABASE": "pawfect-match-f7a629d2-93ae-495d-9099-8bfc9cd55215",
+    "ALLOWED_ORIGINS": "http://localhost:5173"
+  }
+}

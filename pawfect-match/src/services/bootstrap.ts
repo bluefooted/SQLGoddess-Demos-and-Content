@@ -1,5 +1,6 @@
 import type { IAuthService } from './IAuthService';
 import { MockAuthService } from './MockAuthService';
+import { PreviewAuthService } from './PreviewAuthService';
 import { RayfinAuthService } from './RayfinAuthService';
 import { initRayfinClient } from './rayfinClient';
 
@@ -34,7 +35,16 @@ export function bootstrapAuth(): IAuthService {
     baseUrl: apiUrl.endsWith('/') ? apiUrl : `${apiUrl}/`,
     publishableKey: publishableKey ?? 'local-dev-key',
     localDev,
+    functionsBaseUrl: localDev
+      ? import.meta.env.VITE_RAYFIN_FUNCTIONS_URL
+      : undefined,
   });
+
+  const localPreview = import.meta.env.DEV &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+  if (localPreview && !localDev) {
+    return new PreviewAuthService();
+  }
 
   if (localDev) {
     return new MockAuthService(client);

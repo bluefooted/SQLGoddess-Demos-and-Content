@@ -1,0 +1,11 @@
+name: pawfect-match-rag
+metadata:
+  template: pawfect-match-rag@0.1.0
+services:
+  api:
+    project: ./api
+    language: ts
+    host: function
+infra:
+  provider: bicep
+  path: infra

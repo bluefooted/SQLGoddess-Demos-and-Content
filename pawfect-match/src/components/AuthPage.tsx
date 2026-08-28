@@ -42,26 +42,26 @@ export function AuthPage() {
     : 'Sign in with Microsoft';
 
   return (
-    <div className="relative min-h-screen flex flex-col overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Decorative background shapes */}
-      <div className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-blue-100/50 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-32 -left-32 h-[500px] w-[500px] rounded-full bg-indigo-100/40 blur-3xl" />
-
-      <div className="relative flex flex-1 items-center justify-center p-4">
-        <div className="w-full max-w-sm">
-          <div className="rounded-3xl border border-white/60 bg-white/80 p-8 shadow-xl backdrop-blur-sm">
-            <div className="mb-8 text-center">
-              <h1 className="text-2xl font-bold text-gray-900">Todo App</h1>
-              <p className="mt-2 text-sm text-gray-500">
-                Sign in to get started.
-              </p>
+    <div className="auth-shell min-h-screen grid lg:grid-cols-[1.15fr_.85fr] bg-[#f6f7ff]">
+      <section className="auth-visual hidden lg:flex relative min-h-screen overflow-hidden bg-[#5146c8] text-white p-16 flex-col justify-between">
+        <div className="absolute inset-0 opacity-45 bg-[url('https://images.unsplash.com/photo-1450778869180-41d0601e046e?auto=format&fit=crop&w=1800&q=85')] bg-cover bg-center" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#5146c8]/35 via-[#4038a4]/60 to-[#28266f]/95" />
+        <div className="relative flex items-center gap-3 font-display text-xl"><span className="grid place-items-center size-10 rounded-lg bg-[#72e6b1] text-[#28266f]">P</span>Pawfect Match</div>
+        <div className="relative max-w-xl"><p className="text-[#72e6b1] text-xs font-bold uppercase tracking-[.16em]">Better evidence. Happier homes.</p><h1 className="mt-4 font-display text-5xl leading-tight">Every pet deserves the right introduction.</h1><p className="mt-5 max-w-lg text-sm leading-7 text-[#e3e7ff]">Lifestyle-aware discovery powered by shelter knowledge, trusted care notes, and Fabric SQL.</p></div>
+      </section>
+      <div className="flex items-center justify-center p-6">
+        <div className="auth-card w-full max-w-sm rounded-lg bg-white border border-[#dfe1f5] p-8 shadow-[0_16px_45px_rgba(73,70,160,.12)]">
+            <div className="mb-8">
+              <p className="text-[11px] font-bold uppercase tracking-[.12em] text-[#0f9f77]">Shelter intelligence</p>
+              <h2 className="mt-2 font-display text-3xl font-semibold text-[#28266f]">Welcome to Pawfect Match</h2>
+              <p className="mt-2 text-sm leading-6 text-[#666987]">Sign in to discover adoptable pets and manage shelter profiles.</p>
             </div>
 
             <button
               type="button"
               onClick={handleSignIn}
               disabled={isLoading}
-              className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 text-sm font-medium text-white shadow-md shadow-blue-600/25 transition-all hover:shadow-lg hover:shadow-blue-600/30 hover:brightness-110 disabled:opacity-50 disabled:shadow-none"
+              className="flex w-full items-center justify-center rounded-lg bg-[#3578e5] px-4 py-3 text-sm font-bold text-white shadow-[0_7px_18px_rgba(53,120,229,.24)] transition-colors hover:bg-[#2867cf] disabled:opacity-50"
             >
               {msLogo}
               {buttonLabel}
@@ -70,7 +70,6 @@ export function AuthPage() {
             {error && (
               <p className="mt-3 text-center text-sm text-red-600">{error}</p>
             )}
-          </div>
         </div>
       </div>
     </div>

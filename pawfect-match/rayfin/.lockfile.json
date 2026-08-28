@@ -16,6 +16,14 @@
         "kind": "cli",
         "versionOrSha": "1.34.0"
       }
+    },
+    "skill:rayfin-functions": {
+      "sha256": "7ba67328d63dfbedbc8fa5b7437e68c123b0041277daee8ca42e7859400ebb93",
+      "source": {
+        "id": "@microsoft/rayfin-cli",
+        "kind": "cli",
+        "versionOrSha": "1.34.0"
+      }
     }
   },
   "version": 1
